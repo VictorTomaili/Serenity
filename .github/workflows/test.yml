@@ -37,14 +37,14 @@ jobs:
       working-directory: "src"
 
     - name: Avoid pnpm install on dotnet build
-      shell: bash
+      shell: sh
       run: |
         rc=/tmp/rcfile
         echo 'shopt -s expand_aliases' > $rc
         echo 'alias pnpm="echo" ' >> $rc
 
     - name: dotnet build
-      shell: bash
+      shell: sh
       run: |
         source /tmp/rcfile
         dotnet build --no-restore
