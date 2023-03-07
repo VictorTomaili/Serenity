@@ -22,9 +22,9 @@ jobs:
 
     - name: Nuget package cache
       uses: actions/cache@v3
-      id: nuget-package-files
+      id: nuget-package-cache
       env:
-        cache-name: nuget-package-files
+        cache-name: nuget-package-cache
       with:
         path: ~/.nuget/packages
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
@@ -32,7 +32,7 @@ jobs:
           ${{ runner.os }}-nuget-
         fail-on-cache-miss: true
 
-    - if: ${{ steps.nuget-package-files.outputs.cache-hit != 'true' }}
+    - if: ${{ steps.nuget-package-cache.outputs.cache-hit != 'true' }}
       name: Restore Dependencies
       run: dotnet restore
       working-directory: "src"
