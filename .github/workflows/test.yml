@@ -3,7 +3,7 @@ name: build
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "actions-update" ]
   pull_request:
     branches: [ "master" ]
   workflow_dispatch:
@@ -51,24 +51,21 @@ jobs:
       env:
         cache-name: node-modules-project-folder
       with:
-        name: node_modules
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
         path: |
           **/*/node_modules/*
           
+    - if: ${{ steps.cache-node_modules-project-folder.outputs.cache-hit != 'true' }}
     - name: Cache pnpm store
       id: cache-pnpm-store
       uses: actions/cache@v3
       env:
         cache-name: cache-pnpm-store
       with:
-        path: ~/.pnpm-store
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
+        path: ~/.pnpm-store
           
-    - if: ${{ steps.node-modules-project-folder.outputs.cache-hit != 'true' }}
+    - if: ${{ steps.cache-node_modules-project-folder.outputs.cache-hit != 'true' }}
       name: pnpm instal all
       run: pnpm i
       
@@ -91,7 +88,6 @@ jobs:
       env:
         cache-name: cache-nuget-packages
       with:
-        name: nuget_packages
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.csproj') }}
         path: |
           ./obj/*.nuget.*
@@ -131,7 +127,7 @@ jobs:
       env:
         cache-name: node-modules-project-folder
       with:
-        name: node_modules
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
         path: |
           **/*/node_modules/*
         fail-on-cache-miss: true
@@ -142,7 +138,6 @@ jobs:
       env:
         cache-name: cache-nuget-packages
       with:
-        name: nuget_packages
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.csproj') }}
         path: |
           ./obj/*.nuget.*
@@ -191,7 +186,7 @@ jobs:
       env:
         cache-name: node-modules-project-folder
       with:
-        name: node_modules
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
         path: |
           **/*/node_modules/*
         fail-on-cache-miss: true
@@ -202,7 +197,6 @@ jobs:
       env:
         cache-name: cache-nuget-packages
       with:
-        name: nuget_packages
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.csproj') }}
         path: |
           ./obj/*.nuget.*
@@ -247,7 +241,7 @@ jobs:
       env:
         cache-name: node-modules-project-folder
       with:
-        name: node_modules
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
         path: |
           **/*/node_modules/*
         fail-on-cache-miss: true
@@ -258,7 +252,6 @@ jobs:
       env:
         cache-name: cache-nuget-packages
       with:
-        name: nuget_packages
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.csproj') }}
         path: |
           ./obj/*.nuget.*
