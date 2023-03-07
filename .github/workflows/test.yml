@@ -31,8 +31,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-nuget-
 
-    - if: ${{ steps.nuget-package-cache.outputs.cache-hit != 'true' }}
-      name: Restore Dependencies
+    - name: Restore Dependencies
       run: dotnet restore
       working-directory: "src"
 
