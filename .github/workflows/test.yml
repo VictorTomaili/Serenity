@@ -47,8 +47,8 @@ jobs:
         node-version: '18.14.2'
 
     - name: Cache node_modules project folder
-      id: node-modules-project-folder
       uses: actions/cache@v3
+      id: node-modules-project-folder
       env:
         cache-name: node-modules-project-folder
       with:
@@ -57,9 +57,9 @@ jobs:
           **/*/node_modules/*
           
     - if: ${{ steps.cache-node_modules-project-folder.outputs.cache-hit != 'true' }}
-    - name: Cache pnpm store
-      id: cache-pnpm-store
+      name: Cache pnpm store
       uses: actions/cache@v3
+      id: cache-pnpm-store
       env:
         cache-name: cache-pnpm-store
       with:
@@ -85,8 +85,8 @@ jobs:
         name: entire-project
     
     - name: Cache nuget packages 
-      id: cache-nuget-packages
       uses: actions/cache@v3
+      id: cache-nuget-packages
       env:
         cache-name: cache-nuget-packages
       with:
@@ -125,8 +125,8 @@ jobs:
         name: entire-project
         
     - name: Cache node_modules project folder
-      id: node-modules-project-folder
       uses: actions/cache@v3
+      id: node-modules-project-folder
       env:
         cache-name: node-modules-project-folder
       with:
@@ -136,8 +136,8 @@ jobs:
         fail-on-cache-miss: true
     
     - name: Cache nuget packages 
-      id: cache-nuget-packages
       uses: actions/cache@v3
+      id: cache-nuget-packages
       env:
         cache-name: cache-nuget-packages
       with:
@@ -185,8 +185,8 @@ jobs:
         name: entire-project
         
     - name: Cache node_modules project folder
-      id: node-modules-project-folder
       uses: actions/cache@v3
+      id: node-modules-project-folder
       env:
         cache-name: node-modules-project-folder
       with:
@@ -196,8 +196,8 @@ jobs:
         fail-on-cache-miss: true
     
     - name: Cache nuget packages 
-      id: cache-nuget-packages
       uses: actions/cache@v3
+      id: cache-nuget-packages
       env:
         cache-name: cache-nuget-packages
       with:
@@ -241,8 +241,8 @@ jobs:
         name: entire-project
         
     - name: Cache node_modules project folder
-      id: node-modules-project-folder
       uses: actions/cache@v3
+      id: node-modules-project-folder
       env:
         cache-name: node-modules-project-folder
       with:
@@ -252,8 +252,8 @@ jobs:
         fail-on-cache-miss: true
     
     - name: Cache nuget packages 
-      id: cache-nuget-packages
       uses: actions/cache@v3
+      id: cache-nuget-packages
       env:
         cache-name: cache-nuget-packages
       with:
