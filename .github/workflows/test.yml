@@ -9,32 +9,266 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  checkout:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: setup .net
-      uses: actions/setup-dotnet@v3
+    - name: Checkout repository
+    - name: Package.json Artifacts
+      uses: actions/upload-artifact@v3
       with:
-        dotnet-version: 6.0.x
+        name: npm-package-config
+        path: |
+          **/*/package.json
+          pnpm-workspace.yaml
+    - name: Project Self Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: entire-project
+        path: .
+  pnpm:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download packages.json
+      uses: actions/download-artifact@v3
+      with:
+        name: npm-package-config
+        
     - name: setup pnpm
       uses: pnpm/action-setup@v2
       with:
         version: 7.29.0
+        
     - name: setup node
       uses: actions/setup-node@v3
       with:
         node-version: '18.14.2'
-        cache: 'pnpm'        
-    - name: Restore Dependencies
+
+    - name: Cache node_modules project folder
+      id: node-modules-project-folder
+      uses: actions/cache@v3
+      env:
+        cache-name: node-modules-project-folder
+      with:
+        name: node_modules
+        path: |
+          **/*/node_modules/*
+          
+    - name: Cache pnpm store
+      id: cache-pnpm-store
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-pnpm-store
+      with:
+        path: ~/.pnpm-store
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+          
+    - if: ${{ steps.node-modules-project-folder.outputs.cache-hit != 'true' }}
+      name: pnpm instal all
+      run: pnpm i
+      
+  dotnet-restore:
+    runs-on: ubuntu-latest
+    steps:
+    - name: setup .net
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+        
+    - name: Download project
+      uses: actions/download-artifact@v3
+      with:
+        name: entire-project
+    
+    - name: Cache nuget packages 
+      id: cache-nuget-packages
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-nuget-packages
+      with:
+        name: nuget_packages
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.csproj') }}
+        path: |
+          ./obj/*.nuget.*
+          ~/.nuget/packages
+          
+    - if: ${{ steps.cache-nuget-packages.outputs.cache-hit != 'true' }}
+      name: Restore Dependencies
       run: dotnet restore
       working-directory: "src"
+      
+  dotnet-build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: setup .net
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+        
+    - name: setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 7.29.0
+        
+    - name: setup node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.14.2'
+        
+    - name: Download project
+      uses: actions/download-artifact@v3
+      with:
+        name: entire-project
+        
+    - name: Cache node_modules project folder
+      id: node-modules-project-folder
+      uses: actions/cache@v3
+      env:
+        cache-name: node-modules-project-folder
+      with:
+        name: node_modules
+        path: |
+          **/*/node_modules/*
+        fail-on-cache-miss: true
+    
+    - name: Cache nuget packages 
+      id: cache-nuget-packages
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-nuget-packages
+      with:
+        name: nuget_packages
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.csproj') }}
+        path: |
+          ./obj/*.nuget.*
+          ~/.nuget/packages
+        fail-on-cache-miss: true
+          
     - name: dotnet build
       run: dotnet build --no-restore
       working-directory: "src"
+    
+    - name: Build Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-output
+        path: |
+          **/*/bin/*
+          **/*/obj/*
+          **/*/wwwroot/*    
+    
+  dotnet-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: setup .net
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+        
+    - name: setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 7.29.0
+        
+    - name: setup node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.14.2'
+        
+    - name: Download project
+      uses: actions/download-artifact@v3
+      with:
+        name: entire-project
+        
+    - name: Cache node_modules project folder
+      id: node-modules-project-folder
+      uses: actions/cache@v3
+      env:
+        cache-name: node-modules-project-folder
+      with:
+        name: node_modules
+        path: |
+          **/*/node_modules/*
+        fail-on-cache-miss: true
+    
+    - name: Cache nuget packages 
+      id: cache-nuget-packages
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-nuget-packages
+      with:
+        name: nuget_packages
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.csproj') }}
+        path: |
+          ./obj/*.nuget.*
+          ~/.nuget/packages
+        fail-on-cache-miss: true
+        
+    - name: Download build files
+      uses: actions/download-artifact@v3
+      with:
+        name: build-output
+        
     - name: dotnet test
       run: dotnet test --no-build --verbosity normal
       working-directory: "src"
+      
+  pnpm-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: setup .net
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+        
+    - name: setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 7.29.0
+        
+    - name: setup node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.14.2'
+        
+    - name: Download project
+      uses: actions/download-artifact@v3
+      with:
+        name: entire-project
+        
+    - name: Cache node_modules project folder
+      id: node-modules-project-folder
+      uses: actions/cache@v3
+      env:
+        cache-name: node-modules-project-folder
+      with:
+        name: node_modules
+        path: |
+          **/*/node_modules/*
+        fail-on-cache-miss: true
+    
+    - name: Cache nuget packages 
+      id: cache-nuget-packages
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-nuget-packages
+      with:
+        name: nuget_packages
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.csproj') }}
+        path: |
+          ./obj/*.nuget.*
+          ~/.nuget/packages
+        fail-on-cache-miss: true
+        
+    - name: Download build files
+      uses: actions/download-artifact@v3
+      with:
+        name: build-output
+        
     - name: corelib test
       run: pnpm test
       working-directory: "src/Serenity.Scripts/corelib"
