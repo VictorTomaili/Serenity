@@ -12,8 +12,8 @@ jobs:
   checkout:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
     - name: Checkout repository
+      uses: actions/checkout@v3    
     - name: Package.json Artifacts
       uses: actions/upload-artifact@v3
       with:
@@ -26,6 +26,7 @@ jobs:
       with:
         name: entire-project
         path: .
+        
   pnpm:
     runs-on: ubuntu-latest
     steps:
